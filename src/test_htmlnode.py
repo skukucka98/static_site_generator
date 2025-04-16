@@ -1,9 +1,9 @@
 import unittest
 
-from htmlnode import *
+from htmlnode import HTMLNode
 
 
-class TestTextNode(unittest.TestCase):
+class TestHtmlNode(unittest.TestCase):
     def test_eq_props_to_html(self):
         node = HTMLNode("span", "oh shoot it's dat boi", HTMLNode("p", "oh shoot whaddup"), {"href": "https://www.google.com","target": "_blank"})
         prop_str = " href=\"https://www.google.com\" target=\"_blank\""
