@@ -1,7 +1,6 @@
-from textnode import TextNode, TextType
-from htmlnode import HTMLNode
-from leafnode import LeafNode
-from parentnode import ParentNode
+from textnode import TextNode, TextType, text_node_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode
+from inline_markdown import extract_markdown_images, extract_markdown_links
 
 def main():
     text_node = TextNode("This is some text in my node", TextType.LINK, "https://www.boot.dev")
@@ -18,10 +17,13 @@ def main():
         {"href": "https://www.google.com","target": "_blank"}
     )
 
-    print(text_node)
-    print(html_node)
-    print(leaf_node.to_html())
-    print(parent_node.to_html())
+    # print(text_node)
+    # print(html_node)
+    # print(leaf_node)
+    # print(parent_node)
+    # print(text_node_to_html_node(text_node))
+    print(extract_markdown_links(""))
+
 
 main()
     
