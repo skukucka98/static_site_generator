@@ -32,6 +32,17 @@ def extract_markdown_links(text):
     matches = re.findall(pattern, text)
     return matches
 
+def recursive_split(text, delimiters):
+        if not delimiters:
+            return [text]
+        current_delimiter = delimiters[0]
+        remaining_delimiters = delimiters[1:]
+        split_texts = re.split(re.escape(current_delimiter), text)
+        result = []
+        for subtext in split_texts:
+            result.extend(recursive_split(subtext, remaining_delimiters))
+        return result
+
 def split_nodes_image(old_nodes):
     new_nodes = []
     for old_node in old_nodes:
@@ -40,18 +51,49 @@ def split_nodes_image(old_nodes):
             new_nodes.append(old_node)
             continue
         split_nodes = []
-        for image in images:
-            sections = old_node.text.split(f"![{image[0]}]({image[1]})")
-            for i in range(len(sections)):
-                if sections[i] == "":
-                    continue
-                if i % 2 == 0:
-                    split_nodes.append(TextNode(sections[i], TextType.TEXT))
-                    split_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
-                    
+        delimiters = []
+        for i in range(len(images)):
+            delimiters.append(f"![{images[i][0]}]({images[i][1]})")
+        sections = recursive_split(old_node.text, delimiters)
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            split_nodes.append(TextNode(sections[i], TextType.TEXT))
+            if i >= len(sections)-1:
+                continue
+            split_nodes.append(TextNode(images[i][0], TextType.IMAGE, images[i][1]))
                     
         new_nodes.extend(split_nodes)
     return new_nodes
 
 def split_nodes_link(old_nodes):
-    return
+    new_nodes = []
+    for old_node in old_nodes:
+        links = extract_markdown_links(old_node.text)
+        if old_node.text_type == TextType.IMAGE or links == []:
+            new_nodes.append(old_node)
+            continue
+        split_nodes = []
+        delimiters = []
+        for i in range(len(links)):
+            delimiters.append(f"[{links[i][0]}]({links[i][1]})")
+        sections = recursive_split(old_node.text, delimiters)
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            split_nodes.append(TextNode(sections[i], TextType.TEXT))
+            if i >= len(sections)-1:
+                continue
+            split_nodes.append(TextNode(links[i][0], TextType.LINK, links[i][1]))
+                    
+        new_nodes.extend(split_nodes)
+    return new_nodes
+
+def text_to_textnodes(text):
+    initial_node = TextNode(text, TextType.TEXT)
+    bold_nodes = split_nodes_delimiter([initial_node], "**", TextType.BOLD)
+    italic_nodes = split_nodes_delimiter(bold_nodes, "_", TextType.ITALIC)
+    code_nodes = split_nodes_delimiter(italic_nodes, "`", TextType.CODE)
+    image_nodes = split_nodes_image(code_nodes)
+    final_nodes = split_nodes_link(image_nodes)
+    return final_nodes
