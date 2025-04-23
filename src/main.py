@@ -1,61 +1,56 @@
-from textnode import TextNode, TextType, text_node_to_html_node
-from htmlnode import HTMLNode, LeafNode, ParentNode
-from inline_markdown import (
-    extract_markdown_images, 
-    extract_markdown_links, 
-    split_nodes_delimiter, 
-    split_nodes_image, 
-    split_nodes_link,
-    text_to_textnodes
-)
-from block_markdown import (
-    markdown_to_blocks,
-    block_to_block_type
-)
+import os
+import shutil
+from block_markdown import markdown_to_html_node, extract_title
+from inline_markdown import *
 
 def main():
-    text_node = TextNode("This is some text in my node", TextType.LINK, "https://www.boot.dev")
-    html_node = HTMLNode("<span>", "oh shoot it's dat boi", None, {"href": "https://www.google.com","target": "_blank"})
-    leaf_node = LeafNode(None, "this is a test", {"href": "https://www.google.com","target": "_blank"})
-    parent_node = ParentNode(
-        "p",
-        [
-            LeafNode("b", "Bold text"),
-            LeafNode(None, "Normal text", {"href": "https://yahoo.com","target": "_something"}),
-            LeafNode("i", "italic text", {"href": "https://yahoo.com","target": "_something"}),
-            LeafNode(None, "Normal text"),
-        ],
-        {"href": "https://www.google.com","target": "_blank"}
-    )
+    copy_dir("static", "public")
+    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_page("content/blog/glorfindel/index.md", "template.html", "public/blog/glorfindel/index.html")
+    generate_page("content/blog/majesty/index.md", "template.html", "public/blog/majesty/index.html")
+    generate_page("content/blog/tom/index.md", "template.html", "public/blog/tom/index.html")
+    generate_page("content/contact/index.md", "template.html", "public/contact/index.html")
 
-    # print(text_node)
-    # print(html_node)
-    # print(leaf_node)
-    # print(parent_node)
-    # print(text_node_to_html_node(text_node))
-
-    # images = extract_markdown_images("This is text with a link ![to boot dev](https://www.boot.dev) and ![to youtube](https://www.youtube.com/@bootdotdev)")
-    # print(images[1][0])
-
-    # text = "This is _italic text_ with an **image** ![to boot dev](https://www.boot.dev) and a `code block` link [to youtube](https://www.youtube.com/@bootdotdev)"
-
-    # print(text_to_textnodes(text))
-
-#     md = """
-#               This is **bolded** paragraph
-
-#             This is another paragraph with _italic_ text and `code` here
-# This is the same paragraph on a new line              
-
-# - This is a list
-# - with items                              
-#         """
-#     blocks = markdown_to_blocks(md)
-#     print(blocks)
-
-    block = "1. Hello there baby\n3. Testtest"
-    print(block_to_block_type(block))
-
-
-main()
     
+def copy_dir(from_path, dest_path):
+    if not os.path.exists(dest_path):
+        os.makedirs(dest_path)
+    else:
+        shutil.rmtree(dest_path)
+
+    for item in os.listdir(from_path):
+        s = os.path.join(from_path, item)
+        d = os.path.join(dest_path, item)
+        print(f"{s} -> {d}")
+        
+        if os.path.isdir(s):
+            copy_dir(s, d)
+        else:
+            shutil.copy(s, d)
+
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    markdown = ""
+    with open(from_path, "r") as f:
+        markdown = f.read()
+
+    template_html = ""
+    with open(template_path, "r") as f:
+        template_html = f.read()
+
+    content_html = markdown_to_html_node(markdown).to_html()
+    content_title = extract_title(markdown)
+    generated_html = template_html.replace("{{ Title }}", content_title).replace("{{ Content }}", content_html)
+    dest_dir_path = os.path.dirname(dest_path)
+    if dest_dir_path != "":
+        os.makedirs(dest_dir_path, exist_ok=True)
+    with open(dest_path, "w") as f:
+        f.write(generated_html)
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    # TODO
+    return
+    
+main()
