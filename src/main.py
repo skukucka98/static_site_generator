@@ -3,14 +3,6 @@ import shutil
 from block_markdown import markdown_to_html_node, extract_title
 from inline_markdown import *
 
-def main():
-    copy_dir("static", "public")
-    generate_page("content/index.md", "template.html", "public/index.html")
-    generate_page("content/blog/glorfindel/index.md", "template.html", "public/blog/glorfindel/index.html")
-    generate_page("content/blog/majesty/index.md", "template.html", "public/blog/majesty/index.html")
-    generate_page("content/blog/tom/index.md", "template.html", "public/blog/tom/index.html")
-    generate_page("content/contact/index.md", "template.html", "public/contact/index.html")
-
     
 def copy_dir(from_path, dest_path):
     if not os.path.exists(dest_path):
@@ -50,7 +42,21 @@ def generate_page(from_path, template_path, dest_path):
 
 
 def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
-    # TODO
-    return
+    if not os.path.exists(dest_dir_path):
+        os.makedirs(dest_dir_path)
+    for item in os.listdir(dir_path_content):
+        s = os.path.join(dir_path_content, item)
+        d = os.path.join(dest_dir_path, item)
+        print(f"{s} -> {d}")
+        
+        if os.path.isdir(s):
+            generate_pages_recursive(s, template_path, d)
+        else:
+            generate_page(s, template_path, d.replace(".md", ".html"))
     
+
+def main():
+    copy_dir("static", "public")
+    generate_pages_recursive("content", "template.html", "public")
+
 main()
