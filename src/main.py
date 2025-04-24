@@ -58,7 +58,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, bas
     
 
 def main():
-    basepath = sys.argv[0]
+    basepath = sys.argv[1]
     if not basepath:
         basepath = "/"
     print(f"basepath set to: {basepath}")
